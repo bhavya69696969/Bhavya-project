@@ -1,0 +1,108 @@
+import csv
+
+FILENAME = 'library_books.csv'
+
+def load_books():
+    books = {}
+    try:
+        with open(FILENAME, mode='r', newline='') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                books[int(row['id'])] = {
+                    'title': row['title'],
+                    'author': row['author'],
+                    'quantity': int(row['quantity']),
+                    'issued': int(row['issued'])
+                }
+    except FileNotFoundError:
+        # File does not exist yet
+        pass
+    return books
+
+def save_books(books):
+    with open(FILENAME, mode='w', newline='') as file:
+        fieldnames = ['id', 'title', 'author', 'quantity', 'issued']
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        for book_id, info in books.items():
+            writer.writerow({
+                'id': book_id,
+                'title': info['title'],
+                'author': info['author'],
+                'quantity': info['quantity'],
+                'issued': info['issued']
+            })
+
+def add_book(books):
+    book_id = int(input("Enter book ID: "))
+    if book_id in books:
+        print("Book ID already exists.")
+        return
+    title = input("Enter book title: ")
+    author = input("Enter author name: ")
+    quantity = int(input("Enter quantity: "))
+    books[book_id] = {'title': title, 'author': author, 'quantity': quantity, 'issued': 0}
+    print(f"Book '{title}' added successfully.")
+
+def search_book(books):
+    search_title = input("Enter title to search: ").lower()
+    found = False
+    for book_id, info in books.items():
+        if search_title in info['title'].lower():
+            print(f"ID: {book_id}, Title: {info['title']}, Author: {info['author']}, "
+                  f"Available: {info['quantity'] - info['issued']}")
+            found = True
+    if not found:
+        print("No books found with that title.")
+
+def issue_book(books):
+    book_id = int(input("Enter book ID to issue: "))
+    if book_id not in books:
+        print("Book ID not found.")
+        return
+    available = books[book_id]['quantity'] - books[book_id]['issued']
+    if available > 0:
+        books[book_id]['issued'] += 1
+        print(f"Book '{books[book_id]['title']}' issued successfully.")
+    else:
+        print("No copies available to issue.")
+
+def return_book(books):
+    book_id = int(input("Enter book ID to return: "))
+    if book_id not in books:
+        print("Book ID not found.")
+        return
+    if books[book_id]['issued'] > 0:
+        books[book_id]['issued'] -= 1
+        print(f"Book '{books[book_id]['title']}' returned successfully.")
+    else:
+        print(f"No issued copies of '{books[book_id]['title']}' to return.")
+
+def main():
+    books = load_books()
+    while True:
+        print("Library Management System")
+        print("1. Add Book")
+        print("2. Search Book")
+        print("3. Issue Book")
+        print("4. Return Book")
+        print("5. Exit")
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            add_book(books)
+        elif choice == '2':
+            search_book(books)
+        elif choice == '3':
+            issue_book(books)
+        elif choice == '4':
+            return_book(books)
+        elif choice == '5':
+            save_books(books)
+            print("Library data saved. Exiting...")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
